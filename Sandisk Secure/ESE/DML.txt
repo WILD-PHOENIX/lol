@@ -1,0 +1,137 @@
+-- ✅ Create database and use it
+CREATE DATABASE college;
+USE college;
+
+-- ✅ Create tables with constraints
+CREATE TABLE department (
+    dept_id INT PRIMARY KEY,
+    dept_name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE student (
+    student_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    age INT CHECK (age >= 17 AND age <= 30),
+    gender ENUM('M', 'F') DEFAULT 'M',
+    dept_id INT,
+    FOREIGN KEY (dept_id) REFERENCES department(dept_id)
+);
+
+-- ✅ Insert sample data (DML)
+INSERT INTO department VALUES 
+(1, 'Computer Science'),
+(2, 'Electronics');
+
+INSERT INTO student (name, age, gender, dept_id) VALUES
+('Alice', 20, 'F', 1),
+('Bob', 21, 'M', 1),
+('Charlie', 19, 'M', 2),
+('David', 22, 'M', 1);
+
+-- ✅ Create a view
+CREATE VIEW student_view AS
+SELECT 
+    s.student_id, 
+    s.name, 
+    s.age, 
+    s.gender, 
+    d.dept_name
+FROM student s
+JOIN department d ON s.dept_id = d.dept_id;
+
+-- ✅ Create indexes
+CREATE INDEX idx_student_name ON student(name);
+CREATE INDEX idx_age_gender ON student(age, gender);
+
+-- ✅ Demonstrate DML SELECT Queries
+
+-- a) ORDER BY
+SELECT * FROM student ORDER BY age DESC;
+
+-- b) GROUP BY
+SELECT dept_id, COUNT(*) AS total_students 
+FROM student 
+GROUP BY dept_id;
+
+-- c) Aggregate functions
+SELECT 
+    AVG(age) AS avg_age,
+    MAX(age) AS max_age,
+    MIN(age) AS min_age 
+FROM student;
+
+-- d) HAVING clause
+SELECT dept_id, COUNT(*) AS student_count 
+FROM student 
+GROUP BY dept_id 
+HAVING student_count > 1;
+
+-- e) Set operators (using temporary table to simulate INTERSECT/EXCEPT)
+
+-- Create a second table for comparison
+CREATE TABLE alumni (
+    name VARCHAR(100)
+);
+
+INSERT INTO alumni VALUES 
+('Bob'), 
+('Charlie'), 
+('Emma');
+
+-- UNION (unique records)
+SELECT name FROM student
+UNION
+SELECT name FROM alumni;
+
+-- UNION ALL (with duplicates)
+SELECT name FROM student
+UNION ALL
+SELECT name FROM alumni;
+
+-- INTERSECT simulation (common names)
+SELECT name FROM student
+WHERE name IN (SELECT name FROM alumni);
+
+-- EXCEPT simulation (students not in alumni)
+SELECT name FROM student
+WHERE name NOT IN (SELECT name FROM alumni);
+
+-- ✅ Single row functions
+
+-- Date functions
+SELECT 
+    name, 
+    hire_date := CURDATE(), 
+    YEAR(CURDATE()) AS year_now, 
+    MONTH(CURDATE()) AS month_now, 
+    DAYNAME(CURDATE()) AS today_day 
+FROM student;
+
+-- String functions
+SELECT 
+    name, 
+    UPPER(name) AS upper_name, 
+    LOWER(name) AS lower_name, 
+    LENGTH(name) AS name_length,
+    CONCAT('Student: ', name) AS full_text 
+FROM student;
+
+-- Time functions
+SELECT 
+    NOW() AS current_datetime,
+    CURDATE() AS today_date,
+    CURTIME() AS current_time;
+
+-- ✅ Alter table: Add a column
+ALTER TABLE student ADD email VARCHAR(100);
+
+-- ✅ Alter table: Drop the column
+ALTER TABLE student DROP COLUMN email;
+
+-- ✅ Alter table: Add a CHECK constraint
+ALTER TABLE student ADD CONSTRAINT chk_age CHECK (age BETWEEN 17 AND 30);
+
+-- To drop the CHECK constraint, get constraint name from:
+-- SHOW CREATE TABLE student;
+
+-- ✅ Done

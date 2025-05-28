@@ -1,0 +1,58 @@
+CREATE DATABASE EmployeeDB;
+USE EmployeeDB;
+
+CREATE TABLE employees (
+    emp_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    salary DECIMAL(10,2) NOT NULL
+);
+
+INSERT INTO employees (name, salary) VALUES 
+('Alice Johnson', 60000),
+('Bob Smith', 45000),
+('Charlie Davis', 75000),
+('David Wilson', 30000),
+('Emma Brown', 52000);
+
+DELIMITER $$
+
+CREATE PROCEDURE GetEmployeeDetails(IN p_emp_id INT)
+BEGIN
+    SELECT * FROM employees WHERE emp_id = p_emp_id;
+END $$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE FetchHighSalaryEmployees()
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE v_name VARCHAR(255);
+    DECLARE v_salary DECIMAL(10,2);
+    DECLARE emp_cursor CURSOR FOR 
+        SELECT name, salary FROM employees WHERE salary > 50000;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    OPEN emp_cursor;
+    
+    read_loop: LOOP
+        FETCH emp_cursor INTO v_name, v_salary;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        SELECT v_name AS Employee_Name, v_salary AS Employee_Salary;
+    END LOOP;
+    
+    CLOSE emp_cursor;
+END $$
+
+DELIMITER ;
+
+-- Get details of an employee by ID (Example: Employee ID 1)
+CALL GetEmployeeDetails(1);
+
+-- Fetch employees with salary greater than 50,000
+CALL FetchHighSalaryEmployees();
+

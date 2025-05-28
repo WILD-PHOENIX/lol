@@ -1,0 +1,99 @@
+-- Create and use database
+CREATE DATABASE company_demo;
+USE company_demo;
+
+-- Create tables
+CREATE TABLE employees (
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
+    department VARCHAR(50),
+    salary DECIMAL(10,2),
+    hire_date DATE
+);
+
+-- Insert data (DML)
+INSERT INTO employees VALUES
+(1, 'Alice', 'HR', 50000, '2020-01-15'),
+(2, 'Bob', 'IT', 60000, '2019-03-20'),
+(3, 'Charlie', 'Finance', 55000, '2021-07-01'),
+(4, 'David', 'IT', 62000, '2022-02-14'),
+(5, 'Eva', 'HR', 52000, '2023-05-10'),
+(6, 'Frank', 'Finance', 48000, '2021-10-25');
+
+-- a) ORDER BY
+SELECT * FROM employees ORDER BY salary DESC;
+
+-- b) GROUP BY
+SELECT department, SUM(salary) AS total_salary
+FROM employees
+GROUP BY department;
+
+-- c) Aggregate Functions
+SELECT 
+    AVG(salary) AS avg_salary,
+    MAX(salary) AS max_salary,
+    MIN(salary) AS min_salary
+FROM employees;
+
+-- d) HAVING clause
+SELECT department, SUM(salary) AS total_salary
+FROM employees
+GROUP BY department
+HAVING total_salary > 100000;
+
+-- e) Set Operators (simulate INTERSECT/EXCEPT using IN/NOT IN)
+
+-- Create second table
+CREATE TABLE old_employees (
+    id INT,
+    name VARCHAR(50)
+);
+
+INSERT INTO old_employees VALUES
+(2, 'Bob'),
+(4, 'David'),
+(7, 'George');
+
+-- UNION
+SELECT name FROM employees
+UNION
+SELECT name FROM old_employees;
+
+-- UNION ALL
+SELECT name FROM employees
+UNION ALL
+SELECT name FROM old_employees;
+
+-- INTERSECT (simulate)
+SELECT name FROM employees
+WHERE name IN (SELECT name FROM old_employees);
+
+-- EXCEPT (simulate)
+SELECT name FROM employees
+WHERE name NOT IN (SELECT name FROM old_employees);
+
+-- f) Single Row Functions
+
+-- Date functions
+SELECT 
+    name, 
+    hire_date,
+    YEAR(hire_date) AS year_hired,
+    MONTH(hire_date) AS hire_month,
+    DAYNAME(hire_date) AS weekday_hired
+FROM employees;
+
+-- Time functions
+SELECT 
+    NOW() AS current_datetime,
+    CURDATE() AS today_date,
+    CURTIME() AS current_time;
+
+-- String functions
+SELECT 
+    name,
+    UPPER(name) AS upper_case,
+    LOWER(name) AS lower_case,
+    LENGTH(name) AS name_length,
+    CONCAT('Hello ', name) AS greeting
+FROM employees;

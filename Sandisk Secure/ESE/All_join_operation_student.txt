@@ -1,0 +1,160 @@
+Here’s the complete SQL script including table creation, inserting sample data, and executing the required queries.
+
+I. Student & Instructor Database
+1. Create Tables with Primary and Foreign Keys
+CREATE TABLE Instructor (
+    instructorid INT PRIMARY KEY,
+    instructorname VARCHAR(50) NOT NULL,
+    instructorcity VARCHAR(50),
+    specialization VARCHAR(50)
+);
+CREATE TABLE Student (
+    studentid INT PRIMARY KEY,
+    studentname VARCHAR(50) NOT NULL,
+    instructorid INT,
+    studentcity VARCHAR(50),
+    FOREIGN KEY (instructorid) REFERENCES Instructor(instructorid) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+2. Insert Sample Data
+INSERT INTO Instructor (instructorid, instructorname, instructorcity, specialization) VALUES
+(1, 'Dr. Smith', 'Pune', 'Computer'),
+(2, 'Dr. Johnson', 'Mumbai', 'Mathematics'),
+(3, 'Dr. Lee', 'Delhi', 'Physics'),
+(4, 'Dr. Patel', 'Pune', 'Computer');
+INSERT INTO Student (studentid, studentname, instructorid, studentcity) VALUES
+(101, 'Alice', 1, 'Pune'),
+(102, 'Bob', 2, 'Mumbai'),
+(103, 'Charlie', NULL, 'Bangalore'),
+(104, 'David', 1, 'Pune'),
+(105, 'Eve', NULL, 'Chennai');
+
+3. Execute Queries
+Find the instructor of each student (INNER JOIN)
+SELECT S.studentid, S.studentname, I.instructorid, I.instructorname 
+FROM Student S 
+INNER JOIN Instructor I 
+ON S.instructorid = I.instructorid;
+Find students without an instructor (LEFT JOIN with NULL check)
+SELECT S.studentid, S.studentname 
+FROM Student S 
+LEFT JOIN Instructor I 
+ON S.instructorid = I.instructorid 
+WHERE I.instructorid IS NULL;
+Find students without instructors and instructors without students (FULL OUTER JOIN)
+SELECT S.studentid, S.studentname, I.instructorid, I.instructorname 
+FROM Student S 
+LEFT JOIN Instructor I 
+ON S.instructorid = I.instructorid 
+WHERE I.instructorid IS NULL
+UNION 
+SELECT S.studentid, S.studentname, I.instructorid, I.instructorname 
+FROM Instructor I 
+LEFT JOIN Student S 
+ON S.instructorid = I.instructorid 
+WHERE S.studentid IS NULL;
+Find students whose instructor specializes in 'Computer'
+SELECT S.studentid, S.studentname 
+FROM Student S 
+JOIN Instructor I 
+ON S.instructorid = I.instructorid 
+WHERE I.specialization = 'Computer';
+Create a view for students whose instructor is from Pune
+CREATE VIEW Students_Instructor_Pune AS 
+SELECT COUNT(S.studentid) AS total_students 
+FROM Student S 
+JOIN Instructor I 
+ON S.instructorid = I.instructorid 
+WHERE I.instructorcity = 'Pune';
+
+II. Employee & Department Database
+1. Create Tables
+CREATE TABLE Departments (
+    department_id INT AUTO_INCREMENT PRIMARY KEY,
+    department_name VARCHAR(30) NOT NULL,
+    location_id INT DEFAULT NULL
+);
+CREATE TABLE Employees (
+    employee_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(20) DEFAULT NULL,
+    last_name VARCHAR(25) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    phone_number VARCHAR(20) DEFAULT NULL,
+    hire_date DATE NOT NULL,
+    job_id INT NOT NULL,
+    salary DECIMAL(8,2) NOT NULL,
+    manager_id INT DEFAULT NULL,
+    department_id INT DEFAULT NULL,
+    FOREIGN KEY (department_id) REFERENCES Departments(department_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (manager_id) REFERENCES Employees(employee_id)
+);
+
+2. Insert Sample Data
+INSERT INTO Departments (department_id, department_name, location_id) VALUES
+(1, 'HR', 1700),
+(2, 'IT', 1700),
+(3, 'Finance', 1600),
+(4, 'Marketing', 1800);
+INSERT INTO Employees (employee_id, first_name, last_name, email, phone_number, hire_date, job_id, salary, manager_id, department_id) VALUES
+(1, 'John', 'Doe', 'john.doe@example.com', '1234567890', '2022-01-15', 101, 8000, NULL, 1),
+(2, 'Jane', 'Smith', 'jane.smith@example.com', '9876543210', '2021-05-22', 102, 12000, 1, 2),
+(3, 'Emily', 'Jones', 'emily.jones@example.com', '4567891230', '2020-09-10', 103, 7000, 1, 3),
+(4, 'Michael', 'Brown', 'michael.brown@example.com', '3692581470', '2019-06-05', 104, 15000, 2, 2),
+(5, 'Sarah', 'Davis', 'sarah.davis@example.com', '2583691470', '2023-02-18', 105, 6000, 2, NULL);
+
+3. Execute Queries
+Find all employees in location 1700
+SELECT E.* 
+FROM Employees E 
+JOIN Departments D 
+ON E.department_id = D.department_id 
+WHERE D.location_id = 1700;
+Find all employees not in location 1700
+SELECT E.* 
+FROM Employees E 
+JOIN Departments D 
+ON E.department_id = D.department_id 
+WHERE D.location_id <> 1700 OR D.location_id IS NULL;
+Find the employee with the highest salary
+SELECT * 
+FROM Employees 
+WHERE salary = (SELECT MAX(salary) FROM Employees);
+Find employees earning more than the average salary
+SELECT * 
+FROM Employees 
+WHERE salary > (SELECT AVG(salary) FROM Employees);
+Find departments with at least one employee earning more than 10,000
+SELECT DISTINCT D.department_id, D.department_name 
+FROM Departments D 
+JOIN Employees E 
+ON D.department_id = E.department_id 
+WHERE E.salary > 10000;
+Find departments with no employees earning more than 10,000
+SELECT D.department_id, D.department_name 
+FROM Departments D 
+WHERE D.department_id NOT IN (
+    SELECT DISTINCT department_id 
+    FROM Employees 
+    WHERE salary > 10000
+);
+Find employees earning more than the lowest salary in every department
+SELECT * 
+FROM Employees E 
+WHERE E.salary > (SELECT MIN(salary) FROM Employees);
+Find employees earning greater than or equal to the highest salary in every department
+SELECT * 
+FROM Employees E 
+WHERE E.salary >= ALL (SELECT MAX(salary) FROM Employees GROUP BY department_id);
+Find salaries, their average, and difference from the average
+SELECT employee_id, salary, 
+       (SELECT AVG(salary) FROM Employees) AS avg_salary, 
+       salary - (SELECT AVG(salary) FROM Employees) AS difference 
+FROM Employees;
+
+This SQL script covers: ✅ Table creation with constraints
+✅ Insertion of sample data
+✅ Required queries with JOINs and subqueries
+Let me know if you need modifications! 🚀
+
+From <https://chatgpt.com/c/67cc7a38-a854-8005-8596-b757842c4fdb> 
+

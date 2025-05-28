@@ -1,0 +1,40 @@
+-- Step 1: Create a database and use it
+CREATE DATABASE bank;
+USE bank;
+
+-- Step 2: Create the account table
+CREATE TABLE account (
+    id INT PRIMARY KEY,
+    name VARCHAR(50),
+    balance DECIMAL(10,2)
+) ENGINE=InnoDB;
+
+-- Step 3: Insert sample data
+INSERT INTO account VALUES 
+(1, 'Alice', 1000.00),
+(2, 'Bob', 500.00);
+
+-- Step 4: View balances before transaction
+SELECT * FROM account;
+
+-- Step 5: Start a transaction to transfer money from Alice to Bob
+START TRANSACTION;
+
+-- Deduct from Alice (id=1)
+UPDATE account SET balance = balance - 200 WHERE id = 1;
+
+-- Add to Bob (id=2)
+UPDATE account SET balance = balance + 200 WHERE id = 2;
+
+-- Step 6: Commit the transaction
+COMMIT;
+
+-- Step 7: Check balances after successful transaction
+SELECT * FROM account;
+
+-- Optional: Try a failed transaction (uncomment to test)
+-- START TRANSACTION;
+-- UPDATE account SET balance = balance - 5000 WHERE id = 1; -- Too much deduction
+-- UPDATE account SET balance = balance + 5000 WHERE id = 2;
+-- ROLLBACK;  -- Cancel transaction
+-- SELECT * FROM account;  -- Should show original balances

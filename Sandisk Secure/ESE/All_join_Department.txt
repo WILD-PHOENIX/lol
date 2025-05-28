@@ -1,0 +1,95 @@
+CREATE TABLE departments (
+    department_id INT (11) AUTO_INCREMENT PRIMARY KEY,
+    department_name VARCHAR (30) NOT NULL,
+    location_id INT (11) DEFAULT NULL
+);
+
+CREATE TABLE employees (
+    employee_id INT (11) AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR (20) DEFAULT NULL,
+    last_name VARCHAR (25) NOT NULL,
+    email VARCHAR (100) NOT NULL,
+    phone_number VARCHAR (20) DEFAULT NULL,
+    hire_date DATE NOT NULL,
+    job_id INT (11) NOT NULL,
+    salary DECIMAL (8, 2) NOT NULL,
+    manager_id INT (11) DEFAULT NULL,
+    department_id INT (11) DEFAULT NULL,
+    FOREIGN KEY (department_id) REFERENCES departments (department_id) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (manager_id) REFERENCES employees (employee_id)
+);
+
+-- Insert sample departments
+INSERT INTO departments (department_name, location_id) VALUES
+('HR', 1700),
+('IT', 1800),
+('Finance', 1700),
+('Marketing', 1900);
+
+-- Insert sample employees
+INSERT INTO employees (first_name, last_name, email, phone_number, hire_date, job_id, salary, manager_id, department_id) VALUES
+('John', 'Doe', 'john.doe@email.com', '1234567890', '2020-01-01', 1, 12000, NULL, 1),
+('Jane', 'Smith', 'jane.smith@email.com', '0987654321', '2019-05-15', 2, 9500, 1, 2),
+('Mike', 'Brown', 'mike.brown@email.com', '1122334455', '2021-07-10', 3, 11000, 1, 3),
+('Sarah', 'Johnson', 'sarah.j@email.com', '2233445566', '2018-09-23', 4, 7000, 2, 1),
+('Chris', 'Wilson', 'chris.w@email.com', '3344556677', '2022-03-05', 5, 10500, 1, 2);
+
+-- 1. Find all employees who locate in the location with the id 1700
+SELECT e.*
+FROM employees e
+JOIN departments d ON e.department_id = d.department_id
+WHERE d.location_id = 1700;
+
+-- 2. Find all employees who do not locate at the location 1700
+SELECT e.*
+FROM employees e
+JOIN departments d ON e.department_id = d.department_id
+WHERE d.location_id != 1700;
+
+-- 3. Finds the employees who have the highest salary
+SELECT *
+FROM employees
+WHERE salary = (SELECT MAX(salary) FROM employees);
+
+-- 4. Finds all employees whose salaries are greater than the average salary of all employees
+SELECT *
+FROM employees
+WHERE salary > (SELECT AVG(salary) FROM employees);
+
+-- 5. Finds all departments which have at least one employee with the salary is greater than 10,000
+SELECT DISTINCT d.*
+FROM departments d
+JOIN employees e ON d.department_id = e.department_id
+WHERE e.salary > 10000;
+
+-- 6. Finds all departments that do not have any employee with the salary greater than 10,000
+SELECT *
+FROM departments d
+WHERE d.department_id NOT IN (
+    SELECT DISTINCT department_id
+    FROM employees
+    WHERE salary > 10000
+);
+
+-- 7. Finds all employees whose salaries are greater than the lowest salary of every department
+SELECT *
+FROM employees e
+WHERE e.salary > ALL (
+    SELECT MIN(salary)
+    FROM employees
+    GROUP BY department_id
+);
+
+-- 8. Finds all employees whose salaries are greater than or equal to the highest salary of every department
+SELECT *
+FROM employees e
+WHERE e.salary >= ALL (
+    SELECT MAX(salary)
+    FROM employees
+    GROUP BY department_id
+);
+
+-- 9. Finds the salaries of all employees, their average salary, and the difference between the salary of each employee and the average salary
+SELECT e.employee_id, e.salary, avg_salary.avg_salary, (e.salary - avg_salary.avg_salary) AS salary_difference
+FROM employees e
+CROSS JOIN (SELECT AVG(salary) AS avg_salary FROM employees) avg_salary;

@@ -1,0 +1,27 @@
+SHOW DATABASES;
+
+CREATE DATABASE university;
+
+USE university;
+
+CREATE TABLE class(id INT PRIMARY KEY, name VARCHAR(30));
+
+SHOW TABLES;
+
+INSERT INTO class VALUES(1, 'SY-D Comp');
+
+SELECT * FROM class;
+
+DESC class;
+
+SHOW TABLES;
+
+INSERT INTO class VALUES(2, 'SY-D Comp');
+
+DROP TABLE class;
+
+SHOW TABLES;
+
+DROP DATABASE university;
+
+SHOW DATABASES;

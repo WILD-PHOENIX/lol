@@ -1,0 +1,137 @@
+-- Create the Library Database
+CREATE DATABASE LibraryDB;
+USE LibraryDB;
+
+-- Creating tables
+CREATE TABLE BOOK (
+    Book_id INT PRIMARY KEY,
+    Title VARCHAR(255),
+    Publisher_Name VARCHAR(255),
+    Pub_Year YEAR
+);
+
+CREATE TABLE BOOK_AUTHORS (
+    Book_id INT,
+    Author_Name VARCHAR(255),
+    PRIMARY KEY (Book_id, Author_Name),
+    FOREIGN KEY (Book_id) REFERENCES BOOK(Book_id) ON DELETE CASCADE
+);
+
+CREATE TABLE PUBLISHER (
+    Name VARCHAR(255) PRIMARY KEY,
+    Address VARCHAR(255),
+    Phone VARCHAR(20)
+);
+
+CREATE TABLE BOOK_COPIES (
+    Book_id INT,
+    Programme_id INT,
+    No_of_Copies INT,
+    PRIMARY KEY (Book_id, Programme_id),
+    FOREIGN KEY (Book_id) REFERENCES BOOK(Book_id) ON DELETE CASCADE
+);
+
+CREATE TABLE LIBRARY_PROGRAMME (
+    Programme_id INT PRIMARY KEY,
+    Programme_Name VARCHAR(255),
+    Address VARCHAR(255)
+);
+
+CREATE TABLE BOOK_LENDING (
+    Book_id INT,
+    Programme_id INT,
+    Card_No INT,
+    Date_Out DATE,
+    Due_Date DATE,
+    PRIMARY KEY (Book_id, Programme_id, Card_No, Date_Out),
+    FOREIGN KEY (Book_id) REFERENCES BOOK(Book_id) ON DELETE CASCADE
+);
+
+-- Insert sample data into BOOK table
+INSERT INTO BOOK (Book_id, Title, Publisher_Name, Pub_Year) VALUES
+(1, 'The Catcher in the Rye', 'Little, Brown and Company', 1951),
+(2, 'To Kill a Mockingbird', 'J.B. Lippincott & Co.', 1960),
+(3, '1984', 'Secker & Warburg', 1949),
+(4, 'Pride and Prejudice', 'T. Egerton', 1813);
+
+-- Insert sample data into BOOK_AUTHORS table
+INSERT INTO BOOK_AUTHORS (Book_id, Author_Name) VALUES
+(1, 'J.D. Salinger'),
+(2, 'Harper Lee'),
+(3, 'George Orwell'),
+(4, 'Jane Austen');
+
+-- Insert sample data into PUBLISHER table
+INSERT INTO PUBLISHER (Name, Address, Phone) VALUES
+('Little, Brown and Company', 'New York, USA', '123-456-7890'),
+('J.B. Lippincott & Co.', 'Philadelphia, USA', '234-567-8901'),
+('Secker & Warburg', 'London, UK', '345-678-9012'),
+('T. Egerton', 'London, UK', '456-789-0123');
+
+-- Insert sample data into BOOK_COPIES table
+INSERT INTO BOOK_COPIES (Book_id, Programme_id, No_of_Copies) VALUES
+(1, 101, 5),
+(2, 102, 3),
+(3, 103, 4),
+(4, 104, 2);
+
+-- Insert sample data into LIBRARY_PROGRAMME table
+INSERT INTO LIBRARY_PROGRAMME (Programme_id, Programme_Name, Address) VALUES
+(101, 'Central Library', '123 Library St, NY'),
+(102, 'Westside Library', '456 Book Rd, CA'),
+(103, 'Eastside Library', '789 Novel Ave, TX'),
+(104, 'Downtown Library', '101 Read Blvd, FL');
+
+-- Insert sample data into BOOK_LENDING table
+INSERT INTO BOOK_LENDING (Book_id, Programme_id, Card_No, Date_Out, Due_Date) VALUES
+(1, 101, 201, '2017-01-10', '2017-01-24'),
+(2, 102, 202, '2017-02-15', '2017-03-01'),
+(3, 103, 203, '2017-03-20', '2017-04-03'),
+(4, 104, 204, '2017-04-25', '2017-05-09');
+
+-- 1. Retrieve details of all books in the library
+SELECT b.Book_id, b.Title, b.Publisher_Name, GROUP_CONCAT(a.Author_Name) AS Authors,
+       c.Programme_id, c.No_of_Copies
+FROM BOOK b
+JOIN BOOK_AUTHORS a ON b.Book_id = a.Book_id
+JOIN BOOK_COPIES c ON b.Book_id = c.Book_id
+GROUP BY b.Book_id, c.Programme_id;
+
+-- 2. Get the particulars of borrowers who have borrowed more than 3 books between Jan 2017 and Jun 2017
+SELECT bl.Card_No, COUNT(bl.Book_id) AS Books_Borrowed
+FROM BOOK_LENDING bl
+WHERE bl.Date_Out BETWEEN '2017-01-01' AND '2017-06-30'
+GROUP BY bl.Card_No
+HAVING COUNT(bl.Book_id) > 3;
+
+-- 3. Delete a book and update other tables accordingly
+DELETE FROM BOOK WHERE Book_id = 101; -- Assuming 101 is the Book ID
+
+-- 4. Partition the BOOK table based on year of publication
+ALTER TABLE BOOK PARTITION BY RANGE (Pub_Year) (
+    PARTITION p1 VALUES LESS THAN (2000),
+    PARTITION p2 VALUES LESS THAN (2010),
+    PARTITION p3 VALUES LESS THAN (2020),
+    PARTITION p4 VALUES LESS THAN MAXVALUE
+);
+
+-- Query to check partitioning
+EXPLAIN PARTITIONS SELECT * FROM BOOK WHERE Pub_Year = 2015;
+
+-- 5. Create a view of books and their available copies
+CREATE VIEW Available_Books AS
+SELECT b.Book_id, b.Title, SUM(c.No_of_Copies) AS Total_Copies
+FROM BOOK b
+JOIN BOOK_COPIES c ON b.Book_id = c.Book_id
+GROUP BY b.Book_id, b.Title;
+
+-- Retrieve data from the view
+SELECT * FROM Available_Books;
+
+
+
+
+
+
+
+	

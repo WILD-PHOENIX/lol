@@ -1,0 +1,66 @@
+-- Step 1: Create the employees table
+CREATE TABLE employees (
+    employee_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100),
+    position VARCHAR(50),
+    department VARCHAR(50),
+    hire_date DATE
+);
+
+-- Step 2: Create the employee_log table
+CREATE TABLE employee_log (
+    log_id INT PRIMARY KEY AUTO_INCREMENT,
+    employee_id INT,
+    action VARCHAR(100),
+    log_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Step 3: Create the trigger
+DELIMITER $$
+
+CREATE TRIGGER AfterInsertEmployee
+AFTER INSERT ON employees
+FOR EACH ROW
+BEGIN
+    INSERT INTO employee_log (employee_id, action)
+    VALUES (NEW.employee_id, 'Employee added');
+END$$
+
+DELIMITER ;
+
+-- Step 4: Insert sample employee data
+INSERT INTO employees (name, position, department, hire_date)
+VALUES 
+('Alice Johnson', 'Software Engineer', 'IT', '2024-01-15'),
+('Bob Smith', 'HR Manager', 'Human Resources', '2023-09-10'),
+('Carol Lee', 'Accountant', 'Finance', '2022-11-05');
+
+-- Step 5: View the logs to verify the trigger worked
+SELECT * FROM employee_log;
+
+
+
+-- Create relation2 table
+CREATE TABLE relation2 (
+    student_id INT PRIMARY KEY,
+    student_name VARCHAR(50),
+    relation1 VARCHAR(50)
+);
+
+-- Create Orders table
+CREATE TABLE relation1 (
+    order_id INT PRIMARY KEY,
+    SRN_id INT,
+    order_amount DECIMAL(10, 2)
+);
+INSERT INTO relation1 (order_id, SRN_id, order_amount) VALUES
+(101, 1, 250.00),     
+(102, 3, 150.00),     
+(103, 5, 320.00);    
+
+SELECT relation2.student_name, relation2.relation1
+FROM relation2
+LEFT JOIN Orders ON relation2.student_id = relation1.SRN_id
+ORDER BY relation2.student_name;
+
+

@@ -1,0 +1,30 @@
+DELIMITER //
+CREATE FUNCTION USER_ANNUAL_COMP(
+    p_eno INT,
+    p_sal DECIMAL(10, 2),
+    p_comm DECIMAL(10, 2)
+)
+RETURNS DECIMAL(10, 2)
+BEGIN
+    DECLARE annual_compensation DECIMAL(10, 2);
+    -- Substitute NULL values with zero
+    SET annual_compensation = (IFNULL(p_sal, 0) + IFNULL(p_comm, 0)) * 12;
+    RETURN annual_compensation;
+END //
+DELIMITER ;
+
+-- Sample EMP Table Creation and Data Insertion
+CREATE TABLE EMP (
+    EMPNO INT PRIMARY KEY,
+    SAL DECIMAL(10, 2),
+    COMM DECIMAL(10, 2)
+);
+
+INSERT INTO EMP VALUES (101, 5000, 500);
+INSERT INTO EMP VALUES (102, 6000, NULL);
+INSERT INTO EMP VALUES (103, NULL, 700);
+INSERT INTO EMP VALUES (104, NULL, NULL);
+
+-- Call the function in a SELECT statement
+SELECT EMPNO, SAL, COMM, USER_ANNUAL_COMP(EMPNO, SAL, COMM) AS ANNUAL_COMP
+FROM EMP;
